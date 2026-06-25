@@ -7,7 +7,7 @@ API_IMAGE ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(REPOSITORY)/api:latest
 DASHBOARD_IMAGE ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(REPOSITORY)/dashboard:latest
 TF_DIR ?= infra/gcp
 
-.PHONY: help install dev dev-api dev-dashboard test lint fmt terraform-fmt terraform-init terraform-validate terraform-plan terraform-registry docker-auth docker-build-api docker-build-dashboard docker-push-api docker-push-dashboard docker-push deploy-gcp-coldstart
+.PHONY: help install dev dev-api dev-dashboard test lint fmt terraform-fmt terraform-init terraform-validate terraform-plan terraform-registry docker-auth docker-build-api docker-build-dashboard docker-push-api docker-push-dashboard docker-push deploy-gcp-coldstart hardware-lint
 
 help:
 	@echo "SymChaos developer commands"
@@ -20,6 +20,9 @@ help:
 	@echo "  make test               Run available test suites"
 	@echo "  make lint               Run available linters"
 	@echo "  make fmt                Format Terraform and common source files"
+	@echo ""
+	@echo "Hardware:"
+	@echo "  make hardware-lint      Lint/syntax-check SYM-13 Verilog gateware"
 	@echo ""
 	@echo "Terraform:"
 	@echo "  make terraform-fmt      Format Terraform files"
@@ -67,6 +70,16 @@ fmt: terraform-fmt
 	@if command -v ruff >/dev/null 2>&1; then ruff format .; else echo "ruff not found; skipping Python format."; fi
 	@if [ -f package.json ]; then npm run format --if-present; fi
 	@if [ -f apps/dashboard/package.json ]; then cd apps/dashboard && npm run format --if-present; fi
+
+hardware-lint:
+	@if command -v verilator >/dev/null 2>&1; then \
+		verilator --lint-only -Wall hardware/src/zorel_veto_axi.v; \
+	elif command -v iverilog >/dev/null 2>&1; then \
+		iverilog -tnull -Wall hardware/src/zorel_veto_axi.v; \
+	else \
+		echo "Install verilator or iverilog to lint hardware/src/zorel_veto_axi.v"; \
+		exit 1; \
+	fi
 
 terraform-fmt:
 	cd $(TF_DIR) && terraform fmt -recursive

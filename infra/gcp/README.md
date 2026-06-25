@@ -33,3 +33,52 @@ terraform apply
 ```
 
 Do not commit `.tfvars` files containing live API keys.
+
+## Fresh-project cold start
+
+A new GCP project has a bootstrapping dependency: Cloud Run needs images to exist before services can be created, but the image repository is also created by Terraform. Use the targeted two-phase flow below.
+
+### Automated path
+
+From the repository root:
+
+```bash
+export TF_VAR_openai_api_key_secret_value="..."
+make deploy-gcp-coldstart PROJECT_ID="your-gcp-project" REGION="us-central1"
+```
+
+The script will:
+
+1. Enable required GCP services.
+2. Run `terraform init`.
+3. Apply only `google_artifact_registry_repository.symchaos_repo`.
+4. Authenticate Docker to Artifact Registry.
+5. Build and push API and dashboard images.
+6. Apply the full Terraform stack.
+
+### Manual path
+
+```bash
+cd infra/gcp
+terraform init
+terraform apply -target=google_artifact_registry_repository.symchaos_repo
+```
+
+Then from the repository root:
+
+```bash
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+docker build -t us-central1-docker.pkg.dev/[PROJECT_ID]/symchaos-repo/api:latest -f apps/api/Dockerfile .
+docker push us-central1-docker.pkg.dev/[PROJECT_ID]/symchaos-repo/api:latest
+
+docker build -t us-central1-docker.pkg.dev/[PROJECT_ID]/symchaos-repo/dashboard:latest -f apps/dashboard/Dockerfile .
+docker push us-central1-docker.pkg.dev/[PROJECT_ID]/symchaos-repo/dashboard:latest
+```
+
+Finally:
+
+```bash
+cd infra/gcp
+terraform apply
+```

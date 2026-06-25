@@ -18,14 +18,14 @@ resource "google_secret_manager_secret_iam_member" "api_openai_key_access" {
 
 resource "google_artifact_registry_repository_iam_member" "api_artifact_reader" {
   location   = google_artifact_registry_repository.symchaos_repo.location
-  repository = google_artifact_registry_repository.symchaos_repo.name
+  repository = google_artifact_registry_repository.symchaos_repo.repository_id
   role       = "roles/artifactregistry.reader"
   member     = "serviceAccount:${google_service_account.api.email}"
 }
 
 resource "google_artifact_registry_repository_iam_member" "dashboard_artifact_reader" {
   location   = google_artifact_registry_repository.symchaos_repo.location
-  repository = google_artifact_registry_repository.symchaos_repo.name
+  repository = google_artifact_registry_repository.symchaos_repo.repository_id
   role       = "roles/artifactregistry.reader"
   member     = "serviceAccount:${google_service_account.dashboard.email}"
 }

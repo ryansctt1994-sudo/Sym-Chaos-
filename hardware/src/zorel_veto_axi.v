@@ -16,7 +16,10 @@ module zorel_veto_axi #(
     input  wire                              s_axi_aresetn,
 
     input  wire [C_S_AXI_ADDR_WIDTH-1:0]     s_axi_awaddr,
+    // AXI protection type is not used by this peripheral.
+    /* verilator lint_off UNUSEDSIGNAL */
     input  wire [2:0]                        s_axi_awprot,
+    /* verilator lint_on UNUSEDSIGNAL */
     input  wire                              s_axi_awvalid,
     output reg                               s_axi_awready,
 
@@ -30,7 +33,10 @@ module zorel_veto_axi #(
     input  wire                              s_axi_bready,
 
     input  wire [C_S_AXI_ADDR_WIDTH-1:0]     s_axi_araddr,
+    // AXI protection type is not used by this peripheral.
+    /* verilator lint_off UNUSEDSIGNAL */
     input  wire [2:0]                        s_axi_arprot,
+    /* verilator lint_on UNUSEDSIGNAL */
     input  wire                              s_axi_arvalid,
     output reg                               s_axi_arready,
 
@@ -55,8 +61,11 @@ module zorel_veto_axi #(
     assign irq_veto         = r_fault_active && r_sys_en;
     assign led_fault_active = r_fault_active;
 
+    // Registers are word-aligned (addr[1:0] unused); writes only consume low control bits.
+    /* verilator lint_off UNUSEDSIGNAL */
     reg [C_S_AXI_ADDR_WIDTH-1:0] w_addr_latched;
     reg [C_S_AXI_DATA_WIDTH-1:0] w_data_latched;
+    /* verilator lint_on UNUSEDSIGNAL */
     reg [(C_S_AXI_DATA_WIDTH/8)-1:0] w_strb_latched;
     reg w_addr_received;
     reg w_data_received;
@@ -137,7 +146,10 @@ module zorel_veto_axi #(
         end
     end
 
+    // Registers are word-aligned, so addr[1:0] is unused.
+    /* verilator lint_off UNUSEDSIGNAL */
     reg [C_S_AXI_ADDR_WIDTH-1:0] r_addr_latched;
+    /* verilator lint_on UNUSEDSIGNAL */
     reg r_addr_received;
 
     always @(posedge s_axi_aclk) begin

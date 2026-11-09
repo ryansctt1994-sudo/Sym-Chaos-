@@ -6,8 +6,9 @@ REPOSITORY ?= symchaos-repo
 API_IMAGE ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(REPOSITORY)/api:latest
 DASHBOARD_IMAGE ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(REPOSITORY)/dashboard:latest
 TF_DIR ?= infra/gcp
+SIM_OUT ?= $(or $(TMPDIR),/tmp)/zorel_veto_axi_tb.vvp
 
-.PHONY: help install dev dev-api dev-dashboard test lint fmt terraform-fmt terraform-init terraform-validate terraform-plan terraform-registry docker-auth docker-build-api docker-build-dashboard docker-push-api docker-push-dashboard docker-push deploy-gcp-coldstart hardware-lint
+.PHONY: help install dev dev-api dev-dashboard test lint fmt terraform-fmt terraform-init terraform-validate terraform-plan terraform-registry docker-auth docker-build-api docker-build-dashboard docker-push-api docker-push-dashboard docker-push deploy-gcp-coldstart hardware-lint hardware-sim
 
 help:
 	@echo "SymChaos developer commands"
@@ -23,6 +24,7 @@ help:
 	@echo ""
 	@echo "Hardware:"
 	@echo "  make hardware-lint      Lint/syntax-check SYM-13 Verilog gateware"
+	@echo "  make hardware-sim       Run the self-checking ZOREL AXI testbench (iverilog)"
 	@echo ""
 	@echo "Terraform:"
 	@echo "  make terraform-fmt      Format Terraform files"
@@ -80,6 +82,11 @@ hardware-lint:
 		echo "Install verilator or iverilog to lint hardware/src/zorel_veto_axi.v"; \
 		exit 1; \
 	fi
+
+hardware-sim:
+	@command -v iverilog >/dev/null 2>&1 || { echo "Install iverilog to run hardware/sim/zorel_veto_axi_tb.v"; exit 1; }
+	iverilog -g2012 -Wall -o "$(SIM_OUT)" hardware/sim/zorel_veto_axi_tb.v hardware/src/zorel_veto_axi.v
+	vvp -n "$(SIM_OUT)"
 
 terraform-fmt:
 	cd $(TF_DIR) && terraform fmt -recursive

@@ -36,4 +36,12 @@ Install either `verilator` or `iverilog`, then run:
 make hardware-lint
 ```
 
-This performs a syntax/lint pass on the Verilog source. Full board validation still requires Vivado synthesis, implementation, timing analysis, bitstream generation, and hardware smoke testing on the Arty A7-35T.
+This performs a syntax/lint pass on the Verilog source.
+
+## Local simulation
+
+```bash
+make hardware-sim
+```
+
+Runs `hardware/sim/zorel_veto_axi_tb.v` under Icarus Verilog. The testbench drives AXI4-Lite transactions and checks reset state, veto triggering, VCR read-only and monotonic behaviour across SRR, SYS_EN masking of `irq_veto`, and SLVERR on partial write strobes. It exits non-zero on any failed check. Full board validation still requires Vivado synthesis, implementation, timing analysis, bitstream generation, and hardware smoke testing on the Arty A7-35T.

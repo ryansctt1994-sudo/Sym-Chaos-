@@ -7,12 +7,13 @@ API_IMAGE ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(REPOSITORY)/api:latest
 DASHBOARD_IMAGE ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(REPOSITORY)/dashboard:latest
 TF_DIR ?= infra/gcp
 
-.PHONY: help install dev dev-api dev-dashboard test lint fmt terraform-fmt terraform-init terraform-validate terraform-plan terraform-registry docker-auth docker-build-api docker-build-dashboard docker-push-api docker-push-dashboard docker-push deploy-gcp-coldstart hardware-lint
+.PHONY: help install smoke dev dev-api dev-dashboard test lint fmt terraform-fmt terraform-init terraform-validate terraform-plan terraform-registry docker-auth docker-build-api docker-build-dashboard docker-push-api docker-push-dashboard docker-push deploy-gcp-coldstart hardware-lint
 
 help:
 	@echo "SymChaos developer commands"
 	@echo ""
 	@echo "Development:"
+	@echo "  make smoke              Run offline scaffold checks (no cloud access)"
 	@echo "  make install            Install JS and Python dependencies when project manifests exist"
 	@echo "  make dev                Run API and dashboard concurrently"
 	@echo "  make dev-api            Run FastAPI development server"
@@ -35,6 +36,9 @@ help:
 	@echo "  make docker-auth        Configure Docker for Artifact Registry"
 	@echo "  make docker-push        Build and push API and dashboard images"
 	@echo "  make deploy-gcp-coldstart PROJECT_ID=... [REGION=us-central1]"
+
+smoke:
+	@bash scripts/smoke.sh
 
 install:
 	@if [ -f package.json ]; then npm install; fi

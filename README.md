@@ -14,6 +14,20 @@ Sym-Chaos currently contains a developer Makefile, GCP/Terraform infrastructure 
 - `scripts/dev.sh` — development helper
 - `Makefile` — orchestration commands for development, tests, linting, Terraform, containers, and hardware lint
 
+## Runnable offline smoke check
+
+On a clean checkout, no GCP account or infrastructure dependencies are required:
+
+```sh
+make smoke
+```
+
+This checks Bash syntax, required Terraform/hardware scaffold files, and the
+important **no-op startup refusal**: when neither `apps/api` nor
+`apps/dashboard` exists, `make dev` now exits **2** with a clear diagnostic
+instead of reporting success. This is a scaffold check only; it is **not**
+a running API, cloud deployment, hardware simulation, or production evidence.
+
 ## Important boundary
 
 The Makefile references paths such as `apps/api`, `apps/dashboard`, and `packages/*`. Their presence must be checked before treating commands that depend on them as available. A successful Terraform validation or Verilog lint would support only that bounded component, not the whole architecture.

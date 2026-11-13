@@ -34,10 +34,28 @@ run_dashboard() {
   fi
 }
 
-echo "[dev] Starting SymChaos local services..."
-run_api &
-pids+=("$!")
-run_dashboard &
-pids+=("$!")
+has_api=false
+has_dashboard=false
+if [[ -f apps/api/main.py || -f apps/api/app/main.py ]]; then has_api=true; fi
+if [[ -f apps/dashboard/package.json ]]; then has_dashboard=true; fi
 
+# The repository currently contains infrastructure and hardware only.
+# Never report a successful service start when no application exists.
+if [[ "$has_api" == false && "$has_dashboard" == false ]]; then
+  echo "[dev] scaffold only: no API or dashboard entrypoint is checked in." >&2
+  echo "[dev] Run 'make smoke' to verify the available infra/hardware scaffold." >&2
+  exit 2
+fi
+
+echo "[dev] Starting available SymChaos local services..."
+if [[ "$has_api" == true ]]; then
+  run_api &
+  pids+=("$!")
+fi
+if [[ "$has_dashboard" == true ]]; then
+  run_dashboard &
+  pids+=("$!")
+fi
+
+# Stop the other service when one exits, even on startup failure.
 wait -n "${pids[@]}"
